@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project HudsonNotifier">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+		<tstamp/>
+		<delete dir="dist"/>
+        <jar destfile="dist/HudsonNotifier-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
+                <attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
+            </manifest>
+            <fileset dir="bin"/>
+            <zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
+        </jar>
+        <chmod perm="+x" file="dist/HudsonNotifier-${DSTAMP}.jar"/>
+        <copy todir="dist">
+			<fileset dir="conf">
+				<include name="**/*.config"/>
+			</fileset>
+        </copy>
+        <copy todir="dist/images">
+			<fileset dir="images"/>
+		</copy>
+		<copy todir="dist" file="README.txt"></copy>
+		<zip destfile="dist/HudsonNotifier-${DSTAMP}.zip" basedir="dist" compress="false"/>
+    </target>
+</project>
