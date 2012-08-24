@@ -31,13 +31,9 @@ public class GrowlNotifier extends NonRepeatingDesktopNotifier {
 
 	@Override
 	protected void displayNotification(org.lukep.hudsonheckler.notify.Notification notification) {
-		Notification growlNotification = new Notification(growlApp, growlEvent, sanitise(notification.getTitle()), 
-				sanitise(notification.getMessage()));
+		Notification growlNotification = new Notification(growlApp, growlEvent, notification.getTitle(), 
+				notification.getMessage());
 		growlConnector.notify(growlNotification);
-	}
-
-	private String sanitise(String title) {
-		return title.replaceAll("\\n", " ");
 	}
 
 }
