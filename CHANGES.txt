@@ -1,0 +1,13 @@
+
+   WHEN           WHAT 
+  ------         ------
+  
+  5th Sep '12    We're now suppressing notifications after the system has resumed 
+                 from suspension or hibernation, which is particularly handy for 
+                 virtual machines that are constantly brought in and out of these
+                 modes. Additionally, notifications are also being suppressed until 
+                 after the first successful service 'poll' has been achieved. 
+                 This means we won't get a flood of old notifications if the initial 
+                 (suppressed) batch didn't update the last notification states 
+                 due to failure.
+

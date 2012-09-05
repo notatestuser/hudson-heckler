@@ -17,7 +17,7 @@ import org.lukep.hudsonheckler.service.Service;
 public class Application extends NotifyingObservable {
 	
 	public static final String APPLICATION_NAME = "Hudson Heckler";
-	public static final String APPLICATION_RELS = "v0.1";
+	public static final String APPLICATION_RELS = "v0.2";
 	private static final String TRAY_ICON_PATH  = "hudson_2_32x32x32.png";
 
 	private Set<Service>       services = new HashSet<Service>();
@@ -65,12 +65,12 @@ public class Application extends NotifyingObservable {
 						pollInterval, Service.POLL_EVENT_LIMIT, sb.toString())));
 
 		// begin poll timer
-		pollForEvents(Configuration.getBoolean("showInitialEvents"));
+		boolean initialPollResult = pollForEvents(Configuration.getBoolean("showInitialEvents"));
 		pollTimer = new Timer(false);
-		pollTimer.scheduleAtFixedRate((pollTimerTask = new ApplicationTask(this)), 0, pollInterval * 1000);
+		pollTimer.scheduleAtFixedRate((pollTimerTask = new ApplicationTask(this, initialPollResult)), 0, pollInterval * 1000);
 	}
 	
-	protected void pollForEvents(boolean shouldNotify) {
+	protected boolean pollForEvents(boolean shouldNotify) {
 		Service currentService = null;
 		try {
 			for (Service mService : services) {
@@ -88,7 +88,9 @@ public class Application extends NotifyingObservable {
 					"Uh oh! Woe is me!", 
 					String.format("Something terrible happened whilst trying to talk to '%s': %s", 
 							currentService.getName(), e.getMessage())));
+			return false;
 		}
+		return true;
 	}
 
 	protected void pollForEvents() {

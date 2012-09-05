@@ -37,7 +37,7 @@ public class HudsonBuildStatusNotification extends Notification {
 	@Override
 	public String getTitle() {
 		final String status = buildInfo.getStatus();
-		if (status.contains("aborted") || status.contains("since"))
+		if (status.contains("aborted"))
 			return String.format("%s was %s", buildInfo.getProject(), status);
 		else
 			return String.format("%s is %s", buildInfo.getProject(), status);

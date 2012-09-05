@@ -5,7 +5,7 @@
     <target name="create_run_jar">
 		<tstamp/>
 		<delete dir="dist"/>
-        <jar destfile="dist/HudsonNotifier-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="dist/HudsonHeckler-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
                 <attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
@@ -13,7 +13,7 @@
             <fileset dir="bin"/>
             <zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
         </jar>
-        <chmod perm="+x" file="dist/HudsonNotifier-${DSTAMP}.jar"/>
+        <chmod perm="+x" file="dist/HudsonHeckler-${DSTAMP}.jar"/>
         <copy todir="dist">
 			<fileset dir="conf">
 				<include name="**/*.config"/>
@@ -23,6 +23,7 @@
 			<fileset dir="images"/>
 		</copy>
 		<copy todir="dist" file="README.txt"></copy>
-		<zip destfile="dist/HudsonNotifier-${DSTAMP}.zip" basedir="dist" compress="false"/>
+    	<copy todir="dist" file="CHANGES.txt"></copy>
+		<zip destfile="dist/HudsonHeckler-${DSTAMP}.zip" basedir="dist" compress="false"/>
     </target>
 </project>
