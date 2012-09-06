@@ -1,29 +1,88 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project HudsonNotifier">
-    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
-    <!--ANT 1.7 is required                                        -->
-    <target name="create_run_jar">
-		<tstamp/>
-		<delete dir="dist"/>
-        <jar destfile="dist/HudsonHeckler-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
-            <manifest>
-                <attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
-                <attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
-            </manifest>
-            <fileset dir="bin"/>
-            <zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
-        </jar>
-        <chmod perm="+x" file="dist/HudsonHeckler-${DSTAMP}.jar"/>
-        <copy todir="dist">
+<project name="HudsonHeckler" default="create_run_jar" >
+
+	<property name="src.java.dir" value="src"/>
+	<property name="test.java.dir" value="src"/>
+
+	<property name="build.dir" value="build" />
+	<property name="build.classes.dir" value="${build.dir}/classes" />
+	<property name="dist.dir" value="dist" />
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.classes.dir}" />
+		<mkdir dir="${dist.dir}" />
+	</target>
+
+	<path id="lib.path.compile">
+		<fileset dir="libs/" />
+	</path>
+
+	<path id="lib.path.test">
+		<fileset dir="libs_test/" />
+	</path>
+
+	<target name="compile">
+		<javac srcdir="${src.java.dir}" destdir="${build.classes.dir}" classpathref="lib.path.compile" debug="on" />
+	</target>
+
+	<target name="dist" depends="clean,init,compile" description="Create the distributable">
+		<tstamp />
+		<jar destfile="${dist.dir}/${ant.project.name}-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
+				<attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
+			</manifest>
+			<fileset dir="${build.classes.dir}" />
+			<zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
+		</jar>
+
+		<chmod perm="+x" file="${dist.dir}/${ant.project.name}-${DSTAMP}.jar"/>
+		<copy todir="${dist.dir}">
 			<fileset dir="conf">
 				<include name="**/*.config"/>
 			</fileset>
-        </copy>
-        <copy todir="dist/images">
+		</copy>
+
+		<copy todir="${dist.dir}/images">
+			<fileset dir="images"/>
+		</copy>
+
+		<copy todir="${dist.dir}" file="README.txt" />
+		<copy todir="${dist.dir}" file="CHANGES.txt" />
+
+		<zip destfile="${dist.dir}/${ant.project.name}-${DSTAMP}.zip" basedir="${dist.dir}" compress="false"/>
+	</target>
+
+	<!--this file was created by Eclipse Runnable JAR Export Wizard-->
+	<!--ANT 1.7 is required                                        -->
+	<target name="create_run_jar">
+		<tstamp/>
+		<delete dir="dist"/>
+		<jar destfile="dist/HudsonHeckler-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
+				<attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
+			</manifest>
+			<fileset dir="bin"/>
+			<zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
+		</jar>
+		<chmod perm="+x" file="dist/HudsonHeckler-${DSTAMP}.jar"/>
+		<copy todir="dist">
+			<fileset dir="conf">
+				<include name="**/*.config"/>
+			</fileset>
+		</copy>
+		<copy todir="dist/images">
 			<fileset dir="images"/>
 		</copy>
 		<copy todir="dist" file="README.txt"></copy>
     	<copy todir="dist" file="CHANGES.txt"></copy>
 		<zip destfile="dist/HudsonHeckler-${DSTAMP}.zip" basedir="dist" compress="false"/>
-    </target>
+	</target>
 </project>
