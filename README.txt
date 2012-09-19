@@ -1,4 +1,4 @@
- Hudson Heckler v0.1
+ Hudson Heckler v0.2
 ---------------------
 
 Hudson Heckler is a simple program that'll keep you updated on what's happening 
