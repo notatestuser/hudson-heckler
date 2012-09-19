@@ -2,6 +2,9 @@
    WHEN           WHAT 
   ------         ------
   
+  19th Sep '12   Added 'gnomeless' compilation mode to build script, which is
+                 automagically used when running the unit tests!
+  
   5th Sep '12    We're now suppressing notifications after the system has resumed 
                  from suspension or hibernation, which is particularly handy for 
                  virtual machines that are constantly brought in and out of these
