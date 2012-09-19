@@ -41,7 +41,7 @@ public class ApplicationTask extends TimerTask {
 			shouldNotify = false;
 		}
 		
-		if (strayMs > Configuration.getInt("pollIntervalSecs")*1000 + SYSTEM_TIME_STRAY_TOLERANCE_MS) {
+		if (strayMs > Configuration._getInt("pollIntervalSecs") * 1000 + SYSTEM_TIME_STRAY_TOLERANCE_MS) {
 			int strayMins = (int) Math.ceil((strayMs / 1000) / 60);
 			
 			shouldNotify = false;

@@ -6,6 +6,7 @@ import java.util.Date;
 import org.lukep.hudsonheckler.service.HudsonBuildInfo;
 
 public class Notification {
+	
 	protected String title;
 	protected String message;
 	protected Date eventTime;
@@ -51,8 +52,8 @@ public class Notification {
 		return new Notification(title, title, eventTime, localIconUrl);
 	}
 	
-	public static HudsonBuildStatusNotification createHudson(HudsonBuildInfo buildInfo, String serviceName) {
-		return new HudsonBuildStatusNotification(buildInfo, serviceName);
+	public static HudsonBuildStatusNotification createHudson(HudsonBuildInfo buildInfo, String serviceName, String dateFormatStr) {
+		return new HudsonBuildStatusNotification(buildInfo, serviceName, dateFormatStr);
 	}
 	
 	// hashCode() and equals()

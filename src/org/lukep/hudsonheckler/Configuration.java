@@ -22,6 +22,8 @@ public class Configuration {
 	
 	private Map<String, String> configuration = new HashMap<String, String>();
 	
+	private ResourcePathFinder resourcePathFinder;
+	
 	private Configuration() throws Exception {
 		loadConfiguration();
 	}
@@ -35,7 +37,8 @@ public class Configuration {
 	
 	private void loadConfiguration() throws Exception {
 		try {
-			List<String> lines = Files.readLines(new File(ResourcePathFinder.getPathFor(DEFAULT_FILE).toURI()), FILE_CHARSET);
+			List<String> lines = Files.readLines(new File(getResourcePathFinder().getPathFor(DEFAULT_FILE).toURI()), 
+					FILE_CHARSET);
 			
 			String[] words = null;
 			String key, value;
@@ -64,43 +67,51 @@ public class Configuration {
 		}
 	}
 	
+	public ResourcePathFinder getResourcePathFinder() {
+		return resourcePathFinder;
+	}
+
+	void setResourcePathFinder(ResourcePathFinder resourcePathFinder) {
+		this.resourcePathFinder = resourcePathFinder;
+	}
+
 	private String trim(String input) {
 		return input.replaceAll("[:=]$", "").trim();
 	}
 	
-	public String _get(String key) {
+	public String getString(String key) {
 		return configuration.get(key);
 	}
 	
-	public boolean _getBoolean(String key) {
-		return Boolean.parseBoolean(get(key));
+	public boolean getBoolean(String key) {
+		return Boolean.parseBoolean(getString(key));
 	}
 	
-	public int _getInt(String key) {
-		return Integer.parseInt(get(key));
+	public int getInt(String key) {
+		return Integer.parseInt(getString(key));
 	}
 	
-	public static String get(String key) {
+	public static String _getString(String key) {
 		try {
-			return getInstance()._get(key);
+			return getInstance().getString(key);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
-	public static boolean getBoolean(String key) {
+	public static boolean _getBoolean(String key) {
 		try {
-			return getInstance()._getBoolean(key);
+			return getInstance().getBoolean(key);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
-	public static int getInt(String key) {
+	public static int _getInt(String key) {
 		try {
-			return getInstance()._getInt(key);
+			return getInstance().getInt(key);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			return 0;
 		}
 	}
 	

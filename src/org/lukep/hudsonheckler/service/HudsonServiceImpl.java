@@ -20,7 +20,7 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
 
-public class HudsonServiceImpl implements Service {
+public class HudsonServiceImpl extends BaseConfigurationAwareService {
 	
 	private static final String RSS_URI     = "rssLatest";
 	private static final String CHANGES_URI = "changes";
@@ -29,6 +29,8 @@ public class HudsonServiceImpl implements Service {
 			"\\<a\\>([0-9]+)\\<\\/a\\>[\\r\\n ]+by <a href=\\\"\\/user\\/(.+)\\/\\\"";
 	
 	private static final int MAX_REVISION_CACHE_SIZE = 1024;
+	
+	static final String HUDSON_STATUS_DATE_FORMAT_CONFIG_KEY = "hudsonStatusDateFormat";
 	
 	private static Logger LOG = Logger.getLogger(Configuration.class.getName());
 	
@@ -44,15 +46,16 @@ public class HudsonServiceImpl implements Service {
 	
 	private SyndFeed injectedFeed = null;
 	
-	public HudsonServiceImpl() {
+	public HudsonServiceImpl(Configuration config) {
+		super(config);
 		this.lastProjectFeedEntry = new HashMap<String, Date>();
 		this.revisionCache = new HashMap<String, HudsonSourceRevision[]>();
 		if (null == this.eventObservable)
 			this.eventObservable = new NotifyingObservable();
 	}
 	
-	public HudsonServiceImpl(SyndFeed feedToInject, NotifyingObservable observable) {
-		this();
+	public HudsonServiceImpl(SyndFeed feedToInject, NotifyingObservable observable, Configuration config) {
+		this(config);
 		eventObservable = observable;
 		injectedFeed = feedToInject;
 	}
@@ -67,8 +70,8 @@ public class HudsonServiceImpl implements Service {
 			XmlReader xmlr = new XmlReader(Request.Get(feedUrl.toString())
 					.version(HttpVersion.HTTP_1_1)
 					.userAgent(HudsonServiceImpl.class.getSimpleName())
-					.connectTimeout(Configuration.getInt("connectTimeout"))
-					.socketTimeout(Configuration.getInt("socketTimeout"))
+					.connectTimeout(getConfiguration().getInt("connectTimeout"))
+					.socketTimeout(getConfiguration().getInt("socketTimeout"))
 					.execute().returnContent().asStream());
 			
 			feed = input.build(xmlr);
@@ -98,7 +101,7 @@ public class HudsonServiceImpl implements Service {
 			entry = entries.get(i);
 			
 			HudsonBuildInfo buildInfo = fetchBuildInfo(entry);
-			notification = Notification.createHudson(buildInfo, name);
+			notification = Notification.createHudson(buildInfo, name, getConfiguration().getString(HUDSON_STATUS_DATE_FORMAT_CONFIG_KEY));
 			
 			// we're assuming there's one RSS feed entry per project (containing information about its most recent build)
 			if (notification.shouldShow() && ! batch.contains(notification)) {
@@ -115,7 +118,7 @@ public class HudsonServiceImpl implements Service {
 						|| notification.getEventTime().after(lastProjectFeedEntry.get(projectName))) {
 					
 					// displaying notifications may be disabled on the first run through
-					if (shouldNotify && shown++ < POLL_EVENT_LIMIT) {
+					if (shouldNotify && shown++ < getPollEventLimit()) {
 			    		eventObservable.hasChanged();
 			    		eventObservable.notifyObservers(notification);
 					}
@@ -131,7 +134,7 @@ public class HudsonServiceImpl implements Service {
 
 	private HudsonBuildInfo fetchBuildInfo(SyndEntry entry) throws ClientProtocolException, IOException {
 		String buildPageUrl = entry.getLink();
-		HudsonBuildInfo build = new HudsonBuildInfo(entry.getTitle(), buildPageUrl, entry.getUpdatedDate());
+		HudsonBuildInfo build = new HudsonBuildInfo(entry.getTitle(), buildPageUrl, entry.getUpdatedDate(), getConfiguration());
 		
 		// download the buildPageUrl + 'changes', regex for /user/([a-z0-9])/
 		// .. build our URL
@@ -148,8 +151,8 @@ public class HudsonServiceImpl implements Service {
 			String buildPageContent = Request.Get(changesPageUrl.toString())
 					.version(HttpVersion.HTTP_1_1)
 					.userAgent(HudsonServiceImpl.class.getSimpleName())
-					.connectTimeout(Configuration.getInt("connectTimeout"))
-					.socketTimeout(Configuration.getInt("socketTimeout"))
+					.connectTimeout(getConfiguration().getInt("connectTimeout"))
+					.socketTimeout(getConfiguration().getInt("socketTimeout"))
 					.execute().returnContent().asString();
 			
 			// .. and apply our regex to grab the applicable matches
@@ -193,6 +196,11 @@ public class HudsonServiceImpl implements Service {
 		return rootUrl;
 	}
 	
+	@Override
+	public String getName() {
+		return name;
+	}
+	
 	public void setFetchRevisionInfo(boolean fetchRevisionInfo) {
 		this.fetchRevisionInfo = fetchRevisionInfo;
 	}
@@ -202,9 +210,4 @@ public class HudsonServiceImpl implements Service {
 		return String.format("'%s' at %s", name, rootUrl.toString());
 	}
 
-	@Override
-	public String getName() {
-		return name;
-	}
-	
 }

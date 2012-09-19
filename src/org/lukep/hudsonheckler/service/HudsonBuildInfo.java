@@ -9,14 +9,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.lukep.hudsonheckler.Configuration;
-import org.lukep.hudsonheckler.ResourcePathFinder;
+import org.lukep.hudsonheckler.ConfigurationAwareClass;
 
-public class HudsonBuildInfo {
+public class HudsonBuildInfo extends ConfigurationAwareClass {
 	
 	private static final String PATTERN = "^([a-z0-9._-]+)\\ ([#0-9]+)\\ ([0-9]\\ )?\\((.+)\\)$";
 	
-	private static final String HUDSON_STATUS_MATCHERS_CONFIG_KEY = "hudsonStatusMatchers";
-	private static final String HUDSON_ICONS_CONFIG_KEY = "hudsonStatusIcons";
+	static final String HUDSON_STATUS_MATCHERS_CONFIG_KEY = "hudsonStatusMatchers";
+	static final String HUDSON_ICONS_CONFIG_KEY = "hudsonStatusIcons";
+	static final String UNKNOWN = "<unknown>";
 	
 	private String project, buildId, status;
 	private Date buildTime;
@@ -24,7 +25,8 @@ public class HudsonBuildInfo {
 	private boolean includedInStatusMatchers = false;
 	private Set<HudsonSourceRevision> revisions = new HashSet<HudsonSourceRevision>(5);
 
-	HudsonBuildInfo(String statusMsg, String buildPageUrl, Date buildTime) {
+	HudsonBuildInfo(String statusMsg, String buildPageUrl, Date buildTime, Configuration config) {
+		super(config);
 		this.buildTime = buildTime;
 		parseBuildAttributes(statusMsg);
 	}
@@ -37,15 +39,13 @@ public class HudsonBuildInfo {
 			buildId = p.group(2);
 			status = p.group(4);
 		} else {
-			project = "unable to parse entry title";
-			buildId = "?";
-			status = "?";
+			project = buildId = status = UNKNOWN;
 		}
 		
 		// determine whether we care to show this one;
 		// we do this here so that we can find the icon index...
-		String[] matchers = Configuration.get(HUDSON_STATUS_MATCHERS_CONFIG_KEY).split("\\,"),
-		         icons = Configuration.get(HUDSON_ICONS_CONFIG_KEY).split("\\,");
+		String[] matchers = getConfiguration().getString(HUDSON_STATUS_MATCHERS_CONFIG_KEY).split("\\,"),
+		         icons = getConfiguration().getString(HUDSON_ICONS_CONFIG_KEY).split("\\,");
 		
 		if (icons.length < matchers.length)
 			throw new RuntimeException("The number of icons can't be less than the number of matchers.");
@@ -53,7 +53,7 @@ public class HudsonBuildInfo {
 		for (int i = 0; i < matchers.length; i++) {
 			if (status.contains(matchers[i])) {
 				includedInStatusMatchers = true;
-				localIcon = ResourcePathFinder.getPathFor(icons[i]);
+				localIcon = getResourcePathFinder().getPathFor(icons[i]);
 				break;
 			}
 		}
@@ -108,6 +108,7 @@ public class HudsonBuildInfo {
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

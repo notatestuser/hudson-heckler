@@ -12,21 +12,31 @@ import java.util.TimerTask;
 import javax.swing.ImageIcon;
 
 import org.lukep.hudsonheckler.notify.*;
+import org.lukep.hudsonheckler.service.BaseConfigurationAwareService;
 import org.lukep.hudsonheckler.service.Service;
 
 public class Application extends NotifyingObservable {
 	
 	public static final String APPLICATION_NAME = "Hudson Heckler";
-	public static final String APPLICATION_RELS = "v0.2";
+	public static final String APPLICATION_RELS = "v1.0";
 	private static final String TRAY_ICON_PATH  = "hudson_2_32x32x32.png";
 
+	private ResourcePathFinder resourcePathFinder;
+	
 	private Set<Service>       services = new HashSet<Service>();
+	
 	private Set<Service>       brokenServices = new HashSet<Service>();
+	
 	private int                pollInterval = 60;
+	
 	private Timer              pollTimer = null;
+	
 	private volatile TimerTask pollTimerTask = null;
 	
-	public Application() { super(); }
+	public Application(ResourcePathFinder resourcePathFinder) {
+		super();
+		this.resourcePathFinder = resourcePathFinder;
+	}
 	
 	public void addService(Service service) {
 		services.add(service);
@@ -47,7 +57,7 @@ public class Application extends NotifyingObservable {
 	
 	public void start() throws Exception {
 		// pre-load config vars
-		Configuration.getInstance();
+		Configuration config = Configuration.getInstance();
 		
 		addTrayIcon();
 		
@@ -60,12 +70,13 @@ public class Application extends NotifyingObservable {
 		for (Service service : services) {
 			sb.append("\n" + service);
 		}
+		int pollEventLimit = config.getInt(BaseConfigurationAwareService.MAX_POLL_EVENTS_CONFIG_KEY);
 		notifyObservers(Notification.create(String.format("%s %s started", APPLICATION_NAME, APPLICATION_RELS), 
 				String.format("Polling frequency %d secs, %d max events per poll%s", 
-						pollInterval, Service.POLL_EVENT_LIMIT, sb.toString())));
+						pollInterval, pollEventLimit, sb.toString())));
 
 		// begin poll timer
-		boolean initialPollResult = pollForEvents(Configuration.getBoolean("showInitialEvents"));
+		boolean initialPollResult = pollForEvents(config.getBoolean("showInitialEvents"));
 		pollTimer = new Timer(false);
 		pollTimer.scheduleAtFixedRate((pollTimerTask = new ApplicationTask(this, initialPollResult)), 0, pollInterval * 1000);
 	}
@@ -77,9 +88,11 @@ public class Application extends NotifyingObservable {
 				(currentService = mService).poll(shouldNotify);
 				if (brokenServices.contains(mService)) {
 					brokenServices.remove(mService);
-					notifyObservers(Notification.create(
+					if (shouldNotify) {
+						notifyObservers(Notification.create(
 							"Crisis averted!", String.format("Regained connectivity to '%s'; new events will be shown as they happen.", 
 									mService.getName())));
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -104,7 +117,7 @@ public class Application extends NotifyingObservable {
 		}
 		final PopupMenu popup = new PopupMenu();
 		final TrayIcon trayIcon = new TrayIcon(
-				new ImageIcon(ResourcePathFinder.getPathFor(TRAY_ICON_PATH), "tray icon").getImage(), getTooltipText());
+				new ImageIcon(resourcePathFinder.getPathFor(TRAY_ICON_PATH), "tray icon").getImage(), getTooltipText());
 		final SystemTray tray = SystemTray.getSystemTray();
 
 		// service items
@@ -129,7 +142,7 @@ public class Application extends NotifyingObservable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					Desktop.getDesktop().open(new File(ResourcePathFinder.getPathFor("notifier.config").toURI()));
+					Desktop.getDesktop().open(new File(resourcePathFinder.getPathFor("notifier.config").toURI()));
 					notifyObservers(Notification.create("Opening configuration file", "Please restart the application to apply any changes."));
 				} catch (Exception e) {
 					notifyObservers(Notification.create("Can't open the file!", e.getMessage()));

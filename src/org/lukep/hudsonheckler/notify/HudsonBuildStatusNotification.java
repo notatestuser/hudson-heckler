@@ -4,7 +4,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.lukep.hudsonheckler.Configuration;
 import org.lukep.hudsonheckler.service.HudsonBuildInfo;
 import org.lukep.hudsonheckler.service.HudsonSourceRevision;
 
@@ -12,15 +11,16 @@ public class HudsonBuildStatusNotification extends Notification {
 	
 	private HudsonBuildInfo buildInfo;
 	
-	public HudsonBuildStatusNotification(HudsonBuildInfo buildInfo, String serviceName) {
+	public HudsonBuildStatusNotification(HudsonBuildInfo buildInfo, String serviceName, String dateFormatStr) {
 		super("", "", buildInfo.getBuildTime(), null);
 		this.buildInfo = buildInfo;
-		this.message = formatMessage(buildInfo.getBuildTime(), serviceName);
+		this.message = formatMessage(buildInfo.getBuildTime(), serviceName, dateFormatStr);
 	}
 	
-	private String formatMessage(Date publishDate, String serviceName) {
+	private String formatMessage(Date publishDate, String serviceName, String dateFormatStr) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(new SimpleDateFormat(Configuration.get("hudsonStatusDateFormat")).format(publishDate));
+		// TODO use injected Configuration object to get the hudsonStatusDateFormat?
+		sb.append(new SimpleDateFormat(dateFormatStr).format(publishDate));
 		if (buildInfo.getRevisions().size() > 0) {
 			sb.append("\nChanges in "+serviceName+" by ");
 			for (HudsonSourceRevision rev : buildInfo.getRevisions()) {

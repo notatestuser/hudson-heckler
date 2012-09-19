@@ -1,9 +1,10 @@
 package org.lukep.hudsonheckler.service;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -11,9 +12,13 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.lukep.hudsonheckler.Configuration;
+import org.lukep.hudsonheckler.ResourcePathFinder;
 import org.lukep.hudsonheckler.notify.HudsonBuildStatusNotification;
 import org.lukep.hudsonheckler.notify.Notification;
 import org.lukep.hudsonheckler.notify.NotifyingObservable;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -23,17 +28,22 @@ import com.sun.syndication.feed.synd.SyndFeed;
 // TODO mock the Configuration provider in order to have tests work independently of application config files
 public class HudsonServiceImplTest {
 	
-	HudsonServiceImpl hudsonService;
+	@Mock private NotifyingObservable mockedObservable;
 	
-	NotifyingObservable mockedObservable;
+	@Mock private SyndFeed mockedFeed;
 	
-	SyndFeed mockedFeed;
-	List<SyndEntry> mockedFeedEntries = new ArrayList<SyndEntry>();
+	@Mock private Configuration configuration;
+	
+	@Mock private ResourcePathFinder resourcePathFinder;
+	
+	private List<SyndEntry> mockedFeedEntries = new ArrayList<SyndEntry>();
+	
+	private HudsonServiceImpl hudsonService;
 	
 	@Before
 	public void setUp() throws Exception {
-		mockedFeed = mock(SyndFeed.class);
-		mockedObservable = mock(NotifyingObservable.class);
+		MockitoAnnotations.initMocks(this);
+		
 		for (int i = 0; i < 10; i++) { 
 			SyndEntry entry = mock(SyndEntry.class);
 			when(entry.getTitle()).thenReturn("project #"+(i+1)+" (unmatched)");
@@ -44,7 +54,15 @@ public class HudsonServiceImplTest {
 		}
 		when(mockedFeed.getEntries()).thenReturn(mockedFeedEntries);
 		
-		hudsonService = new HudsonServiceImpl(mockedFeed, mockedObservable);
+		when(configuration.getString(HudsonServiceImpl.HUDSON_STATUS_DATE_FORMAT_CONFIG_KEY)).thenReturn("E d/M h:ma");
+		when(configuration.getString(HudsonBuildInfo.HUDSON_STATUS_MATCHERS_CONFIG_KEY)).thenReturn("normal,aborted,broke");
+		when(configuration.getString(HudsonBuildInfo.HUDSON_ICONS_CONFIG_KEY)).thenReturn("n.b,a.b,b.b");
+		when(configuration.getInt(HudsonServiceImpl.MAX_POLL_EVENTS_CONFIG_KEY)).thenReturn(5);
+		when(configuration.getResourcePathFinder()).thenReturn(resourcePathFinder);
+		
+		when(resourcePathFinder.getPathFor(anyString())).thenReturn( new URL("http://github.com/") );
+				
+		hudsonService = new HudsonServiceImpl(mockedFeed, mockedObservable, configuration);
 		hudsonService.setName("hudson");
 		hudsonService.setRootUrl("http://localhost/");
 		hudsonService.setFetchRevisionInfo(false);
@@ -126,10 +144,10 @@ public class HudsonServiceImplTest {
 		
 		assertEquals(2, encounteredNotifications.size());
 		
-		assertTrue(encounteredNotifications.get(0).getTitle().equals("project has been aborted"));
+		assertEquals("project was aborted", encounteredNotifications.get(0).getTitle());
 		assertTrue(encounteredNotifications.get(0).getMessage().contains("#20"));
 		
-		assertTrue(encounteredNotifications.get(1).getTitle().equals("project has been aborted"));
+		assertEquals("project was aborted", encounteredNotifications.get(1).getTitle());
 		assertTrue(encounteredNotifications.get(1).getMessage().contains("#21"));
 	}
 

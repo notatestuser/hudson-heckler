@@ -14,22 +14,25 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		try {
+			ResourcePathFinder resourcePathFinder = new ResourcePathFinder();
+			Configuration.getInstance().setResourcePathFinder( resourcePathFinder );
+			
 			// get a handle on our desired notifier
-			DesktopNotifier notifier = DesktopNotifier.Factory.getByName(Configuration.get("notifier"), 
-					Configuration.get("growlHost"), Application.APPLICATION_NAME);
+			DesktopNotifier notifier = DesktopNotifierFactory.getByName(Configuration._getString("notifier"), 
+					Configuration._getString("growlHost"), Application.APPLICATION_NAME);
 			
 			// init application
-			Application app = new Application();
-			app.setPollInterval(Configuration.getInt("pollIntervalSecs"));
+			Application app = new Application( resourcePathFinder );
+			app.setPollInterval(Configuration._getInt("pollIntervalSecs"));
 			
 			// initialise services with serviceUrls 0-9
-			Class<?> serviceClass = Class.forName(Configuration.get("serviceImpl"));
+			Class<?> serviceClass = Class.forName(Configuration._getString("serviceImpl"));
 			for (int i = 0; i < 10; i++) {
-				String serviceUrl = Configuration.get("serviceUrl-"+i);
+				String serviceUrl = Configuration._getString("serviceUrl-"+i);
 				if (serviceUrl == null)
 					break;
 				Service service = (Service) serviceClass.newInstance();
-				service.setName(Configuration.get("serviceName-"+i));
+				service.setName(Configuration._getString("serviceName-"+i));
 				service.setRootUrl(serviceUrl);
 				app.addService(service);
 			}
@@ -38,6 +41,7 @@ public class Main {
 			app.start();
 		
 		} catch (Exception e) {
+			
 			JOptionPane.showMessageDialog(new JFrame(), e.getMessage(), "Couldn't start", JOptionPane.ERROR_MESSAGE);
 			
 			// drop out if we get an error on init...
