@@ -9,52 +9,54 @@ Hudson Heckler is a simple program that'll keep you updated on what's happening 
 
 > ![The build was aborted!](http://i.imgur.com/5L84x.png "...you may see this if someone doesn't want to know they've destroyed your build, but now you'll be able to catch them!")
 
-## Installing it
+Installing it
+-------------
 
 Getting this up and running isn't all too difficult. Extract everything within 
 this zip file into a directory of your choice and edit notifier.config as you so desire.
 The jar is executable by the Java runtime binaries; if you have a bad OS that doesn't 
 acknowledge this automatically, you could run this command in a terminal instead:
 
->```java -jar HudsonHeckler-*.jar```
+    $ java -jar HudsonHeckler-*.jar
 
 Please note that gtk.jar must exist in /usr/share/java if you plan to use the
 gnome notifier. On Ubuntu, you may get this through apt using this command in a terminal:
 
->```sudo apt-get install libjava-gnome-java```
+    $ sudo apt-get install libjava-gnome-java
 
-## Configuring it
+Configuring it
+--------------
 
 There's a configuration file included alongside the program that'll allow you to change 
 some of its runtime settings. Simply right click on the program's icon and hit "Edit 
 Configuration"; just be sure to save the file and restart the program when you're done.
 
-## Compiling it
+Compiling it
+------------
 
 The included Ant build script should take care of everything for you. There's something 
 a little special you'll have to do if you don't intend to install the java-gnome library 
 on your build platform that will quell any compilation errors you may get regarding it.
 
-### With support for both Growl and Gnome
+### With support for both Growl and Gnome ###
 
->```ant```
+    $ ant
 
+### With Growl-only support ###
 
-### With Growl-only support
+    $ ant -Dgnomeless=true
 
->```ant -Dgnomeless=true```
+### Running the tests ###
 
-### Running the tests
+    $ ant test
 
->```ant test```
-
-## Will it work with Jenkins or my other mutant derivative?
+## Will it work with Jenkins or my other mutant derivative? ###
 
 Probably. We use version 2.2.0 of the Hudson flavour at work but as long as there's an 
 ```/rssLatest``` feed that bears a significant enough likeness, you'll be fine. 
 This also applies to other variants and strangely modified versions of the software.
 
-## Contributions are welcome!
+## Contributions are welcome! ###
 
 Please feel free to contribute to this project; there's plenty of potential here and 
 if you've free time to spare you should totally spend it on this project. 
