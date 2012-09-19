@@ -1,12 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="HudsonHeckler" default="create_run_jar" >
+<project name="Build and distribute HudsonNotifier" default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<property name="src.java.dir" value="src"/>
-	<property name="test.java.dir" value="src"/>
+	<property name="stub.src.java.dir" value="stub_src"/>
+	<property name="test.java.dir" value="test"/>
 
-	<property name="build.dir" value="build" />
-	<property name="build.classes.dir" value="${build.dir}/classes" />
+	<property name="build.dir" value="bin" />
+	<property name="build.classes.dir" value="${build.dir}" />
 	<property name="dist.dir" value="dist" />
+
+	<property name="lib.dir" value="libs"/>
+    <property name="test.lib.dir" value="libs_test"/>
+
+    <path id="project.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement location="/usr/share/java/gtk.jar"/>
+    </path>
+
+    <path id="project.test.classpath">
+        <fileset dir="${test.lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement location="bin"/>
+        <path refid="project.classpath"/>
+    </path>
+	
+	<path id="lib.path.compile">
+		<fileset dir="libs/" />
+	</path>
+
+	<path id="lib.path.test">
+		<fileset dir="libs_test/" />
+	</path>
+
+	<condition property="do.gnomeless.build">
+		<and>
+			<isset property="gnomeless"/>
+			<istrue value="${gnomeless}"/>
+		</and>
+	</condition>
 
 	<target name="clean">
 		<delete dir="${build.dir}" />
@@ -19,70 +53,130 @@
 		<mkdir dir="${dist.dir}" />
 	</target>
 
-	<path id="lib.path.compile">
-		<fileset dir="libs/" />
-	</path>
-
-	<path id="lib.path.test">
-		<fileset dir="libs_test/" />
-	</path>
-
-	<target name="compile">
-		<javac srcdir="${src.java.dir}" destdir="${build.classes.dir}" classpathref="lib.path.compile" debug="on" />
-	</target>
-
-	<target name="dist" depends="clean,init,compile" description="Create the distributable">
-		<tstamp />
-		<jar destfile="${dist.dir}/${ant.project.name}-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
-			<manifest>
-				<attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
-				<attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
-			</manifest>
-			<fileset dir="${build.classes.dir}" />
-			<zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
-		</jar>
-
-		<chmod perm="+x" file="${dist.dir}/${ant.project.name}-${DSTAMP}.jar"/>
-		<copy todir="${dist.dir}">
-			<fileset dir="conf">
-				<include name="**/*.config"/>
-			</fileset>
-		</copy>
-
-		<copy todir="${dist.dir}/images">
-			<fileset dir="images"/>
-		</copy>
-
-		<copy todir="${dist.dir}" file="README.txt" />
-		<copy todir="${dist.dir}" file="CHANGES.txt" />
-
-		<zip destfile="${dist.dir}/${ant.project.name}-${DSTAMP}.zip" basedir="${dist.dir}" compress="false"/>
-	</target>
-
-	<!--this file was created by Eclipse Runnable JAR Export Wizard-->
-	<!--ANT 1.7 is required                                        -->
-	<target name="create_run_jar">
+	<!-- you'll probably want to run this target to build a distributable package -->
+    <target name="dist" depends="create-jar" description="--> create runnable jar and zip to distribute">
 		<tstamp/>
-		<delete dir="dist"/>
-		<jar destfile="dist/HudsonHeckler-${DSTAMP}.jar" filesetmanifest="mergewithoutmain">
-			<manifest>
-				<attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
-				<attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
-			</manifest>
-			<fileset dir="bin"/>
-			<zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="libs"/>
-		</jar>
-		<chmod perm="+x" file="dist/HudsonHeckler-${DSTAMP}.jar"/>
-		<copy todir="dist">
+
+		<delete dir="${dist.dir}"/>
+		
+		<move file="build.jar" tofile="dist/HudsonHeckler.jar"/>
+        
+        <copy todir="${dist.dir}">
 			<fileset dir="conf">
 				<include name="**/*.config"/>
 			</fileset>
-		</copy>
-		<copy todir="dist/images">
+        </copy>
+        
+        <copy todir="dist/images">
 			<fileset dir="images"/>
 		</copy>
-		<copy todir="dist" file="README.txt"></copy>
-    	<copy todir="dist" file="CHANGES.txt"></copy>
-		<zip destfile="dist/HudsonHeckler-${DSTAMP}.zip" basedir="dist" compress="false"/>
-	</target>
+		
+        <copy todir="${dist.dir}" file="README.md"></copy>
+    	<copy todir="${dist.dir}" file="CHANGES.txt"></copy>
+		
+        <zip destfile="dist/HudsonHeckler-${DSTAMP}.zip" basedir="${dist.dir}" compress="false"/>
+    </target>
+
+    <target name="compile" depends="ivy.resolve-build" unless="do.gnomeless.build" description="--> compile sources">
+		<echo message="Using regular mode (with Gnome support); supply -Dgnomeless=true to omit Gnome support"/>
+        <javac srcdir="${src.java.dir}" destdir="bin" classpathref="project.classpath" debug="on" source="1.6" includeantruntime="false"/>
+    </target>
+
+    <target name="compile-gnomeless" depends="ivy.resolve-build" if="do.gnomeless.build" description="--> compile sources (without gnome notifier)">
+		<echo message="Using gnomeless mode (without Gnome support)"/>
+		
+		<copy todir="src-gnomeless">
+			<fileset dir="${src.java.dir}"/>
+		</copy>
+		
+		<copy todir="src-gnomeless" overwrite="true">
+			<fileset dir="${stub.src.java.dir}">
+				<include name="**/GnomeNotifier.java"/>
+			</fileset>
+		</copy>
+		
+        <javac srcdir="src-gnomeless" destdir ="bin" classpathref="project.classpath" debug="on" source="1.6" includeantruntime="false"/>
+        
+        <delete dir="src-gnomeless"/>
+    </target>
+
+    <target name="create-jar" depends="compile,compile-gnomeless" description="--> build a jar">
+        <jar destfile="build.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="org.lukep.hudsonheckler.Main"/>
+                <attribute name="Class-Path" value=". notifier.config images/ /usr/share/java/gtk.jar"/>
+            </manifest>
+            <fileset dir="bin"/>
+            <zipgroupfileset excludes="META-INF/*.SF" includes="*.jar" dir="${lib.dir}"/>
+        </jar>
+        
+        <chmod perm="+x" file="build.jar"/>
+    </target>
+
+    <target name="test" depends="ivy.resolve-test" description="--> run unit tests">
+		<property name="do.gnomeless.build" value="true"/>
+		<antcall target="compile-gnomeless"/>
+    
+        <javac srcdir="${test.java.dir}" destdir="bin" debug="on" source="1.6" includeantruntime="false">
+            <classpath refid="project.test.classpath" />
+        </javac>
+		
+		<junit showoutput="yes" fork="true">
+		    <classpath refid="project.test.classpath" />
+			
+		    <formatter type="plain" usefile="false" />
+			
+		    <batchtest>
+		        <fileset dir="${test.java.dir}">
+		            <include name="**/*Test.java"/>
+		        </fileset>
+		    </batchtest>
+		</junit>
+    </target>
+    
+    <!-- resolve build dependencies using Ivy -->
+    <target name="ivy.resolve-build" depends="init-ivy" description="--> retrieve build dependencies with ivy">
+        <ivy:retrieve pattern="${lib.dir}/[artifact]-[revision].[ext]" conf="build" />
+    </target>
+    
+    <!-- resolve test dependencies using Ivy -->
+    <target name="ivy.resolve-test" depends="ivy.resolve-build" description="--> retrieve test dependencies with ivy">
+        <ivy:retrieve pattern="${test.lib.dir}/[artifact]-[revision].[ext]" conf="test" />
+    </target>
+
+    	
+    	
+    	
+    	
+    	
+    	
+    <!-- ivy-init stuff -->
+    <property name="ivy.install.version" value="2.1.0-rc2" />
+    <condition property="ivy.home" value="${env.IVY_HOME}">
+      <isset property="env.IVY_HOME" />
+    </condition>
+    <property name="ivy.home" value="${user.home}/.ant" />
+    <property name="ivy.jar.dir" value="${ivy.home}/lib" />
+    <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+
+    <target name="download-ivy" unless="offline">
+
+        <mkdir dir="${ivy.jar.dir}"/>
+        <!-- download Ivy from web site so that it can be used even without any special installation -->
+        <get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" 
+             dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <target name="init-ivy" depends="download-ivy">
+      <!-- try to load ivy here from ivy home, in case the user has not already dropped
+              it into ant's lib dir (note that the latter copy will always take precedence).
+              We will not fail as long as local lib dir exists (it may be empty) and
+              ivy is in at least one of ant's lib dir or the local lib dir. -->
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                 uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
 </project>

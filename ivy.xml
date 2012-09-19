@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ivy-module version="2.0">
+    <info
+        organisation="org.lukep"
+        module="hudson-heckler"
+        revision="1.0"
+        status="release">
+    </info>
+    
+    <configurations>
+        <conf name="build" description="libraries required to build the application"/>
+        <conf name="test" description="frameworks (such as mocking, etc) for testing"/>
+    </configurations>
+    
+    <dependencies>
+       <dependency org="org.apache.httpcomponents" name="fluent-hc" rev="4.2.1" conf="build->default" />
+       <dependency org="com.google.code.gson" name="gson" rev="2.1" conf="build->default" />
+       <dependency org="com.google.guava" name="guava" rev="12.0.1" conf="build->default" />
+       <dependency org="rome" name="rome" rev="1.0" conf="build->default" />
+       
+       <!-- test dependencies -->
+       <dependency org="junit" name="junit" rev="4.10" conf="test->default" />
+       <dependency org="org.mockito" name="mockito-core" rev="1.9.5-rc1" conf="test->default" />
+    </dependencies>
+</ivy-module>

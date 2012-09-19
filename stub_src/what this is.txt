@@ -1,0 +1,1 @@
+This isn't anything important - as attempts to compile the sources will fail on platforms that don't have java-gnome installed, the build script is able to 'stub out' references to this library in order to compile a version without support for gnome. We do this for unit testing and if explicitly requested through the use of the argument "-Dgnomeless=true".
