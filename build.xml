@@ -26,7 +26,7 @@
         <pathelement location="bin"/>
         <path refid="project.classpath"/>
     </path>
-
+    
     <path id="lib.path.compile">
         <fileset dir="libs/" />
     </path>
@@ -71,7 +71,6 @@
             <fileset dir="images"/>
         </copy>
         
-        <copy todir="${dist.dir}" file="LICENSE"></copy>
         <copy todir="${dist.dir}" file="README.md"></copy>
         <copy todir="${dist.dir}" file="CHANGES.txt"></copy>
         
