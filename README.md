@@ -12,9 +12,9 @@ Hudson Heckler is a simple program that'll keep you updated on what's happening 
 Installing it
 -------------
 
-Getting this up and running isn't all too difficult. Extract everything within 
+Getting this up and running isn't all too difficult. Extract everything within
 this zip file into a directory of your choice and edit notifier.config as you so desire.
-The jar is executable by the Java runtime binaries; if you have a bad OS that doesn't 
+The jar is executable by the Java runtime binaries; if you have a bad OS that doesn't
 acknowledge this automatically, you could run this command in a terminal instead:
 
     $ java -jar HudsonHeckler-*.jar
@@ -27,16 +27,16 @@ gnome notifier. On Ubuntu, you may get this through apt using this command in a 
 Configuring it
 --------------
 
-There's a configuration file included alongside the program that'll allow you to change 
-some of its runtime settings. Simply right click on the program's icon and hit "Edit 
+There's a configuration file included alongside the program that'll allow you to change
+some of its runtime settings. Simply right click on the program's icon and hit "Edit
 Configuration"; just be sure to save the file and restart the program when you're done.
 
 Compiling it
 ------------
 
-The included Ant build script should take care of everything for you. There's something 
-a little special you'll have to do if you don't intend to install the java-gnome library 
-on your build platform that will quell any compilation errors you may get regarding it.
+The included Ant build script should take care of everything for you. There's something
+a little special you'll have to do if you don't intend to install the java-gnome library
+on your build platform that'll quell any compilation errors you may get regarding that.
 
 ### With support for both Growl and Gnome ###
 
@@ -52,12 +52,12 @@ on your build platform that will quell any compilation errors you may get regard
 
 ## Will it work with Jenkins or my other mutant derivative? ###
 
-Probably. We use version 2.2.0 of the Hudson flavour at work but as long as there's an 
-```/rssLatest``` feed that bears a significant enough likeness, you'll be fine. 
+Probably. We use version 2.2.0 of the Hudson flavour at work but as long as there's an
+```/rssLatest``` feed that bares a significant enough likeness, you'll be fine.
 This also applies to other variants and strangely modified versions of the software.
 
 ## Contributions are welcome! ###
 
-Please feel free to contribute to this project; there's plenty of potential here and 
-if you've free time to spare you should totally spend it on this project. 
+Please feel free to contribute to this project; there's plenty of potential here and
+if you've free time to spare you should totally spend it on this project.
 Really. You know it makes sense.
